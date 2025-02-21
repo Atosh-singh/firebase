@@ -1,2 +1,0 @@
-# firebase
-Add firebase 
