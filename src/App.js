@@ -1,47 +1,85 @@
-
-import { useEffect, useState } from "react";
-import { app } from "./firebase"; // Import initialized Firebase app
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import React from "react";
+// import { initializeApp } from "firebase/app";
+import {
+  addDoc,
+  collection,
+  getFirestore,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  updateDoc,
+  deleteDoc,
+  deleteField,
+} from "firebase/firestore";
+import { app } from "./firebase";
 import "./App.css";
-import SignupPage from "./pages/Signup";
-import SigninPage from "./pages/Signin";
+import firebase from "firebase/compat/app";
 
+const firestore = getFirestore(app);
 
-const auth = getAuth(app);
-
-function App() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-
-        // Yes, you are logged in 
-        console.log("User logged in", user);
-        setUser(user);
-      } else {
-        // user is logged out
-        console.log("User logged out");
-        setUser(null);
-      }
+const App = () => {
+  const writeData = async () => {
+    const result = await addDoc(collection(firestore, "cities"), {
+      name: "Delhi",
+      pincode: 1234,
+      lat: 123,
+      long: 3453,
     });
-  }, []);
+    console.log("Result", result);
+  };
 
-  if (user === null) {
-    return (
-      <div className="App">
-        <SignupPage />
-        <SigninPage />
-      </div>
-    );
-  }
+  const makeSubCollection = async () => {
+    await addDoc(collection(firestore, "cities/RTOgXHNSOuGUPcNrI3n8/places"), {
+      name: "This is a place 2",
+      desc: "Awsm Desc",
+      date: Date.now(),
+    });
+  };
 
+  const getDocument = async () => {
+    const ref = doc(firestore, "cities", "RTOgXHNSOuGUPcNrI3n8");
+    const snap = await getDoc(ref);
+
+    console.log(snap.data());
+  };
+
+  const getDocumentsByQuery = async () => {
+    const collectionRef = collection(firestore, "users");
+
+    const q = query(collectionRef, where("isMale", "==", true));
+    const Snapshot = await getDocs(q);
+
+    Snapshot.forEach((data) => console.log(data.data()));
+  };
+
+  const update = async () => {
+    const docRef = doc(firestore, "cities", "RTOgXHNSOuGUPcNrI3n8");
+    await updateDoc(docRef, {
+      name: "New delhi",
+    });
+  };
+
+  const deleteDoc = async () => {
+    const cityRef = doc(firestore, "cities", "RTOgXHNSOuGUPcNrI3n8");
+
+    await updateDoc(cityRef, {
+      name: deleteField(),
+      pincode: deleteField(),
+    });
+  };
   return (
     <div className="App">
-      <h1>Hello {user.email}</h1>
-      <button onClick={() => signOut(auth)}>Logout</button>
+      <h1>Firebase Firestore</h1>
+      <button onClick={writeData}>Put Data</button>
+      <button onClick={makeSubCollection}>Make Sub Collection</button>
+      <button onClick={getDocument}>Get Document</button>
+      <button onClick={getDocumentsByQuery}> Get Data</button>
+      <button onClick={update}> Update</button>
+      <button onClick={deleteDoc}> Delete</button>
     </div>
   );
-}
+};
 
 export default App;
